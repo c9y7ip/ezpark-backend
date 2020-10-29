@@ -1,0 +1,23 @@
+{
+  "name": "ezpark-backend",
+  "version": "1.0.0",
+  "engines": {
+    "node": "8.11.3"
+  },
+  "description": "Ezpark App Backend",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.3",
+    "moment": "^2.22.1",
+    "mongoose": "^5.0.17",
+    "nodemon": "^2.0.6"
+  }
+}

@@ -1,4 +1,4 @@
-# vogue lounge backend
+# EzPark Backend
 
 ## Dev Config
 1. Run `npm install`

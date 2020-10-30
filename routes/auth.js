@@ -1,24 +1,36 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
+const User = require('../models/users')
 
 router.get('/', (req, res) => {
   res.send('Auth Route is working')
 });
 
-let users = []; // TODO: Connect to mongodb
-router.get('/users', (req, res) => {
-  res.json(users);
+
+router.get('/users', async (req, res) => {
+  try{
+    const users = await User.find()
+    res.json(users)
+  } catch (e) {
+    res.status(500).json({'message': e.message});
+  }
 })
 
 router.post('/register', async (req, res) => {
   try {
-    let pass = await bcrypt.hash(req.body.password, 10); // TODO: Generate user session
-    let user = req.body.username;
-    users.push({username: user, password: pass})
-    console.log(user, pass);
-    res.redirect('/users'); // Admin control panel
-  } catch (error){
+    const user = new User({
+      username:req.body.username,
+      name: "test",
+      lastName: "test",
+      password: await bcrypt.hash(req.body.password, 10),
+      email: "test",
+      phone: "542523",
+      isAdmin: true
+    })
+      const newUser = await user.save();
+      res.status(201).json(newUser)
+    } catch (error){
     console.log(error);
     res.redirect('/'); // Error Page
   }

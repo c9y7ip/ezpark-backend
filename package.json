@@ -17,8 +17,12 @@
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.3",
+    "express-flash": "0.0.2",
+    "express-session": "^1.17.1",
     "moment": "^2.22.1",
     "mongoose": "^5.0.17",
-    "nodemon": "^2.0.6"
+    "nodemon": "^2.0.6",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0"
   }
 }

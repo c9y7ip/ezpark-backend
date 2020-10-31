@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
+const passport = require('passport')
 const User = require('../models/users')
 
 router.get('/', (req, res) => {
@@ -19,30 +20,32 @@ router.get('/users', async (req, res) => {
 
 router.post('/register', async (req, res) => {
   try {
-    const user = new User({
-      username:req.body.username,
-      name: "test",
-      lastName: "test",
-      password: await bcrypt.hash(req.body.password, 10),
-      email: "test",
-      phone: "542523",
-      isAdmin: true
-    })
-      const newUser = await user.save();
-      res.status(201).json(newUser)
+    let userExists = await User.find({email: req.body.email});
+    if(Array.isArray(userExists) && userExists.length){
+      res.redirect('/login'); // TODO: notify user existence
+    } else{
+        const user = new User({
+          firstname: req.body.firstname,
+          lastName: req.body.lastname,
+          password: await bcrypt.hash(req.body.password, 10),
+          email: req.body.email,
+          phone: req.body.phone,
+          isAdmin: true
+        });
+
+        const newUser = await user.save();
+        res.status(201).json(newUser)
+      }
     } catch (error){
     console.log(error);
     res.redirect('/'); // Error Page
   }
 })
 
-router.post('/login', (req, res) => {
-  let user = req.body.username;
-})
-
-
-
-
-
+router.post('/login', passport.authenticate('local', {
+  successRedirect: '/users', // TODO: change to homepage
+  failureRedirect: '/login',
+  failureFlash: true
+}))
 
 module.exports = router;

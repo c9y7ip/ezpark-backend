@@ -3,12 +3,25 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const passport = require('passport');
+const flash = require('express-flash');
+const session = require('express-session');
+const User = require('./models/users');
+
 
 // connect mongoDB
 mongoose.connect(
-  'mongodb://localhost:27017',
-  { useNewUrlParser: true, useUnifiedTopology: true }
+    'mongodb://localhost:27017',
+    { useNewUrlParser: true, useUnifiedTopology: true }
 );
+
+// Passport Authentication
+const initializePassport = require('./passport-config');
+
+initializePassport(passport, async email => {
+  return User.findOne({email: email});
+});
+
 
 /**
  * middleware
@@ -17,6 +30,10 @@ mongoose.connect(
 app.use(bodyParser.json()); // parse client request data to json format
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(flash());
+app.use(session({secret: 'secret', resave:false, saveUninitialized: false})); // TODO: Need to randomly generate secret on sever
+app.use(passport.initialize());
+app.use(passport.session());
 
 // import routers
 const auth = require('./routes/auth');

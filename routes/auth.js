@@ -49,4 +49,11 @@ router.post('/login', authHelper.checkNotAuth, passport.authenticate('local', {
   failureFlash: true
 }))
 
+
+router.post('/logout', ((req, res) => {
+  req.logOut();
+  res.redirect('/login');
+}))
+
+
 module.exports = router;

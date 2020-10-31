@@ -26,8 +26,7 @@ router.post('/register', authHelper.checkNotAuth, async (req, res) => {
       res.redirect('/login'); // TODO: notify user existence
     } else{
         const user = new User({
-          firstname: req.body.firstname,
-          lastName: req.body.lastname,
+          name: req.body.name,
           password: await bcrypt.hash(req.body.password, 10),
           email: req.body.email,
           phone: req.body.phone,

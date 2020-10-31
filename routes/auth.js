@@ -3,13 +3,14 @@ const bcrypt = require('bcrypt');
 const router = express.Router();
 const passport = require('passport')
 const User = require('../models/users')
+const authHelper = require('./auth-helper');
 
 router.get('/', (req, res) => {
   res.send('Auth Route is working')
 });
 
 
-router.get('/users', async (req, res) => {
+router.get('/users', authHelper.checkAuth, async (req, res) => {
   try{
     const users = await User.find()
     res.json(users)
@@ -18,7 +19,7 @@ router.get('/users', async (req, res) => {
   }
 })
 
-router.post('/register', async (req, res) => {
+router.post('/register', authHelper.checkNotAuth, async (req, res) => {
   try {
     let userExists = await User.find({email: req.body.email});
     if(Array.isArray(userExists) && userExists.length){
@@ -42,7 +43,7 @@ router.post('/register', async (req, res) => {
   }
 })
 
-router.post('/login', passport.authenticate('local', {
+router.post('/login', authHelper.checkNotAuth, passport.authenticate('local', {
   successRedirect: '/users', // TODO: change to homepage
   failureRedirect: '/login',
   failureFlash: true

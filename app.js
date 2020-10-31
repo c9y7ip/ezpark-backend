@@ -7,7 +7,7 @@ const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
 const User = require('./models/users');
-
+const authHelper = require('./routes/auth-helper');
 
 // connect mongoDB
 mongoose.connect(
@@ -18,9 +18,10 @@ mongoose.connect(
 // Passport Authentication
 const initializePassport = require('./passport-config');
 
-initializePassport(passport, async email => {
-  return User.findOne({email: email});
-});
+initializePassport(
+    passport,
+    async email => {return User.findOne({email: email})},
+    async id => {return User.findById(id)});
 
 
 /**
@@ -44,9 +45,9 @@ const payment = require('./routes/payment');
 
 // apply router middleware
 app.use('/auth', auth);
-app.use('/car', car);
-app.use('/parking', parking);
-app.use('/payment', payment);
+app.use('/car', authHelper.checkAuth, car);
+app.use('/parking', authHelper.checkAuth, parking);
+app.use('/payment', authHelper.checkAuth, payment);
 
 
 /**

@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const UsersSchema = new Schema({
-    username: { type: String, required: true, unique: true },
+const UserSchema = new Schema({
+    email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: String,
-    email: { type: String, required: true },
     phone: String,
     isAdmin: { type: Boolean, default: false },
     stripeId: { type: String }, // this is for payment processing
@@ -17,6 +16,6 @@ const UsersSchema = new Schema({
     timestamps: true
 });
 
-const Users = mongoose.model('Users', UsersSchema);
+const User = mongoose.model('Users', UserSchema);
 
-module.exports = Users;
+module.exports = User;

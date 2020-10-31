@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 const passport = require('passport')
-const User = require('../models/users')
+const User = require('../models/user')
 const authHelper = require('./auth-helper');
 
 router.get('/', (req, res) => {

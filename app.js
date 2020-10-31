@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
-const User = require('./models/users');
+const User = require('./models/user');
 const authHelper = require('./routes/auth-helper');
 
 // connect mongoDB

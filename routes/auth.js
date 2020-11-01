@@ -3,14 +3,14 @@ const bcrypt = require('bcrypt');
 const router = express.Router();
 const passport = require('passport')
 const User = require('../models/user')
-const authHelper = require('./auth-helper');
+const jwt = require('jsonwebtoken');
 
 router.get('/', (req, res) => {
   res.send('Auth Route is working')
 });
 
 
-router.get('/users', authHelper.checkAuth, async (req, res) => {
+router.get('/users', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try{
     const users = await User.find()
     res.json(users)
@@ -19,7 +19,7 @@ router.get('/users', authHelper.checkAuth, async (req, res) => {
   }
 })
 
-router.post('/register', authHelper.checkNotAuth, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     let userExists = await User.find({email: req.body.email});
     if(Array.isArray(userExists) && userExists.length){
@@ -42,15 +42,41 @@ router.post('/register', authHelper.checkNotAuth, async (req, res) => {
   }
 })
 
-router.post('/login', authHelper.checkNotAuth, passport.authenticate('local', {
-  successRedirect: '/users', // TODO: change to homepage
-  failureRedirect: '/login',
-  failureFlash: true
-}))
+router.post('/login',
+    async (req, res, next) => {
+        passport.authenticate(
+            'local',
+            async (err, user, info) => {
+                try {
+                    if (err || !user) {
+                        return next(err);
+                    }
+
+                    req.login(
+                        user,
+                        { session: false },
+                        async (error) => {
+                            if (error) return next(error);
+
+                            const body = { _id: user._id, email: user.email };
+                            const token = jwt.sign({ user: body }, 'secretKey');
+                            console.log(token)
+
+                            res.cookie('jwt', token);
+                            res.redirect('/users')
+                        }
+                    );
+                } catch (error) {
+                    return next(error);
+                }
+            }
+        )(req, res, next);
+    }
+);
 
 
 router.post('/logout', ((req, res) => {
-  req.logOut();
+  res.cookie('jwt', {expires: Date.now()});
   res.redirect('/login');
 }))
 

@@ -5,9 +5,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const flash = require('express-flash');
-const session = require('express-session');
 const User = require('./models/user');
-const authHelper = require('./routes/auth-helper');
+const JWTstrategy = require('passport-jwt').Strategy;
 
 // connect mongoDB
 mongoose.connect(
@@ -32,9 +31,24 @@ app.use(bodyParser.json()); // parse client request data to json format
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(flash());
-app.use(session({secret: 'secret', resave:false, saveUninitialized: false})); // TODO: Need to randomly generate secret on sever
 app.use(passport.initialize());
-app.use(passport.session());
+passport.use(
+    new JWTstrategy(
+        {
+          secretOrKey: 'secretKey',
+          jwtFromRequest: req => req.cookies.jwt
+        },
+        async (token, done) => {
+          try {
+            return done(null, token.user);
+          } catch (error) {
+            done(error);
+          }
+        }
+    )
+);
+
+
 
 // import routers
 const auth = require('./routes/auth');
@@ -45,9 +59,9 @@ const payment = require('./routes/payment');
 
 // apply router middleware
 app.use('/auth', auth);
-app.use('/car', authHelper.checkAuth, car);
-app.use('/parking', authHelper.checkAuth, parking);
-app.use('/payment', authHelper.checkAuth, payment);
+app.use('/car', passport.authenticate('jwt', { session: false }), car);
+app.use('/parking', passport.authenticate('jwt', { session: false }), parking);
+app.use('/payment', passport.authenticate('jwt', { session: false }), payment);
 
 
 /**

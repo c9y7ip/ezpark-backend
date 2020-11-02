@@ -3,12 +3,24 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const passport = require('passport');
+const flash = require('express-flash');
+const User = require('./models/user');
 
 // connect mongoDB
 mongoose.connect(
-  'localhost:27017',
-  { useNewUrlParser: true, useUnifiedTopology: true }
+    'mongodb://localhost:27017',
+    { useNewUrlParser: true, useUnifiedTopology: true }
 );
+
+// Passport Authentication
+const initializePassport = require('./passport-config');
+
+initializePassport(
+    passport,
+    async email => {return User.findOne({email: email})},
+    async id => {return User.findById(id)});
+
 
 /**
  * middleware
@@ -17,6 +29,10 @@ mongoose.connect(
 app.use(bodyParser.json()); // parse client request data to json format
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(flash());
+app.use(passport.initialize());
+
+
 
 // import routers
 const auth = require('./routes/auth');
@@ -27,9 +43,9 @@ const payment = require('./routes/payment');
 
 // apply router middleware
 app.use('/auth', auth);
-app.use('/car', car);
-app.use('/parking', parking);
-app.use('/payment', payment);
+app.use('/car', passport.authenticate('jwt', { session: false }), car);
+app.use('/parking', passport.authenticate('jwt', { session: false }), parking);
+app.use('/payment', passport.authenticate('jwt', { session: false }), payment);
 
 
 /**

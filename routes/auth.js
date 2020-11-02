@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
           password: await bcrypt.hash(req.body.password, 10),
           email: req.body.email,
           phone: req.body.phone,
-          isAdmin: true
+          isAdmin: JSON.parse(req.body.isAdmin) // Convert admin to boolean
         });
 
         const newUser = await user.save();
@@ -60,10 +60,10 @@ router.post('/login',
                             if (error) return next(error);
 
                             const body = { _id: user._id, email: user.email };
-                            const token = jwt.sign({ user: body }, 'secretKey');
+                            const token = jwt.sign({ user: body }, process.env.SECRET || 'secretKey');
                             console.log(token)
 
-                            res.send(`Bearer  ${token}`);
+                            res.send(`Bearer ${token}`);
                         }
                     );
                 } catch (error) {

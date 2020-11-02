@@ -29,7 +29,7 @@ function initialize(passport, getUserByEmail, getUserByID) {
     passport.use(
         new JWTstrategy(
             {
-                secretOrKey: 'secretKey',
+                secretOrKey: process.env.SECRET || 'secretKey',
                 jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
             },
             async (token, done) => {

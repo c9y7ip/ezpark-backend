@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const flash = require('express-flash');
 const User = require('./models/user');
-const JWTstrategy = require('passport-jwt').Strategy;
 
 // connect mongoDB
 mongoose.connect(
@@ -32,21 +31,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(flash());
 app.use(passport.initialize());
-passport.use(
-    new JWTstrategy(
-        {
-          secretOrKey: 'secretKey',
-          jwtFromRequest: req => req.cookies.jwt
-        },
-        async (token, done) => {
-          try {
-            return done(null, token.user);
-          } catch (error) {
-            done(error);
-          }
-        }
-    )
-);
 
 
 

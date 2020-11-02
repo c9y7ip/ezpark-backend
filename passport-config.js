@@ -1,6 +1,7 @@
 
 const bcrypt = require('bcrypt');
 const LocalStrategy = require('passport-local').Strategy;
+const JWTstrategy = require('passport-jwt').Strategy;
 
 
 function initialize(passport, getUserByEmail, getUserByID) {
@@ -24,6 +25,23 @@ function initialize(passport, getUserByEmail, getUserByID) {
         })
     }
     passport.use(new LocalStrategy({usernameField: 'email'}, authenticateUser));
+    passport.use(
+        new JWTstrategy(
+            {
+                secretOrKey: 'secretKey',
+                jwtFromRequest: req => req.cookies.jwt
+            },
+            async (token, done) => {
+                try {
+                    return done(null, token.user);
+                } catch (error) {
+                    done(error);
+                }
+            }
+        )
+    );
+
+
     passport.serializeUser((user, done) => { return done(null, user.id)});
     passport.deserializeUser((id, done) => { return done(null, getUserByID(id))});
 }

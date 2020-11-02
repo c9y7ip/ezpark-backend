@@ -63,7 +63,7 @@ router.post('/login',
                             const token = jwt.sign({ user: body }, 'secretKey');
                             console.log(token)
 
-                            res.send(`Bearer  ${token}`);
+                            res.send(`Bearer ${token}`);
                         }
                     );
                 } catch (error) {

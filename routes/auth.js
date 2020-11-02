@@ -49,6 +49,7 @@ router.post('/login',
             async (err, user, info) => {
                 try {
                     if (err || !user) {
+                        res.redirect('/login');
                         return next(err);
                     }
 
@@ -62,8 +63,7 @@ router.post('/login',
                             const token = jwt.sign({ user: body }, 'secretKey');
                             console.log(token)
 
-                            res.cookie('jwt', token);
-                            res.redirect('/users')
+                            res.send(`Bearer  ${token}`);
                         }
                     );
                 } catch (error) {

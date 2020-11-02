@@ -2,6 +2,7 @@
 const bcrypt = require('bcrypt');
 const LocalStrategy = require('passport-local').Strategy;
 const JWTstrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require("passport-jwt").ExtractJwt;
 
 
 function initialize(passport, getUserByEmail, getUserByID) {
@@ -29,7 +30,7 @@ function initialize(passport, getUserByEmail, getUserByID) {
         new JWTstrategy(
             {
                 secretOrKey: 'secretKey',
-                jwtFromRequest: req => req.cookies.jwt
+                jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken()
             },
             async (token, done) => {
                 try {

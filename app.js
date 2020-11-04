@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const flash = require('express-flash');
 const User = require('./models/user');
+const cors = require('cors');
 
 // connect mongoDB
 mongoose.connect(
@@ -31,6 +32,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(flash());
 app.use(passport.initialize());
+app.use(cors());
 
 
 

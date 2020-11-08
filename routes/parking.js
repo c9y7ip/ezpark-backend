@@ -23,7 +23,7 @@ router.post('/create-parking', async (req, res) => {
     })
     QRCode.toDataURL(parking.id, { width: 300 }, function (err, url) {
       if (err) {
-        res.status(500).send("failed to create qrcode");
+        return res.status(500).send("failed to create qrcode");
       }
       // If qrcode generated successfully, we save the document for the space.
       // console.log(url);

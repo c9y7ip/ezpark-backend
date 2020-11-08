@@ -5,7 +5,7 @@ const SessionSchema = new Schema({
     date: { type: Date, required: true },
     startTime: { type: Date, required: true, index: true },
     endTime: { type: Date, required: true },
-    duration: { type: Number, required: true },     // unit: minutes
+    duration: { type: Number, required: true },     // unit: hours
     cost: { type: Number, required: true },
     currency: { type: String, default: 'cad' },
     stall: { type: String },

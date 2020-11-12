@@ -63,9 +63,9 @@ router.post('/login',
               const token = jwt.sign({ user: body }, process.env.SECRET || 'secretKey');
               console.log(token)
 
-              const firstname = user.firstname
+              const name = user.name
 
-              res.json({ token: `Bearer ${token}`, name: firstname });
+              res.json({ token: `Bearer ${token}`, name: name });
             }
           );
         } catch (error) {

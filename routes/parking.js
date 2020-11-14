@@ -3,7 +3,6 @@ const Parking = require('../models/parking');
 const Session = require('../models/session');
 const router = express.Router();
 const QRCode = require('qrcode');
-const SessionStrategy = require('passport/lib/strategies/session');
 // const io = require('socket.io').listen(app)
 
 // Cached Data
@@ -36,16 +35,16 @@ function createCache() {
   })
 }
 
-function deletefromCache() {
-
+function deletefromCache(parkingLotId) {
+  delete cachedParkingLots[parkingLotId];
 }
 
-function addToCache() {
-
+function addToCache(parkingLot) {
+  cachedParkingLots[parkingLot.id] = parkingLot;
 }
 
 // update parking cache to include new session object
-function updateCache() {
+function updateSessionInCache() {
 
 }
 
@@ -60,28 +59,26 @@ router.post('/create-parking', async (req, res) => {
     return res.status(400).send('Missing parameter')
   }
 
-  try {
-    const parking = new Parking({
-      name: name,
-      number: number,
-      rate: rate,
-      address: address,
+  const parking = new Parking({
+    name: name,
+    number: number,
+    rate: rate,
+    address: address,
 
-    })
-    QRCode.toDataURL(parking.id, { width: 300 }, function (err, url) {
-      if (err) {
-        return res.status(500).send("failed to create qrcode");
-      }
-      // If qrcode generated successfully, we save the document for the space.
-      parking.qrCodeUrl = url;
-      parking.save()
-        .then(parking => res.send(200))
-        .catch(err => res.status(400).send(`create parking failed ${err}`))
-    })
-  } catch (err) {
-    console.log(err)
-    res.status(400).send(`create parking failed ${err}`)
-  }
+  })
+  QRCode.toDataURL(parking.id, { width: 300 }, function (err, url) {
+    if (err) {
+      return res.status(500).send("failed to create qrcode");
+    }
+    // If qrcode generated successfully, we save the document for the space.
+    parking.qrCodeUrl = url;
+    parking.save()
+      .then(parking => {
+        addToCache(parking.toObject())
+        res.send(200)
+      })
+      .catch(err => res.status(400).send(`create parking failed ${err}`))
+  })
 })
 
 router.get('/all', async (req, res) => {
@@ -99,10 +96,29 @@ router.get('/all', async (req, res) => {
 // })
 
 router.delete('/:parkingId', async (req, res) => {
-
+  Parking.findByIdAndDelete(req.params.parkingId).exec()
+    .then(parking => this.deletefromCache(req.params.parkingId))
+    .catch(err => res.status(400).send(`delete parking failed ${err}`))
 })
 
 router.put('/:parkingId', async (req, res) => {
+  const { name, number, rate, address, sessions } = req.body
+
+  if (!name || !number || !rate || !address || !sessions) {
+    return res.status(400).send('Missing parameter')
+  }
+
+  const parkingLot = { name, number, rate, address, sessions }
+
+  Parking.findOneAndReplace({ _id: req.params.parkingId }, parkingLot, function (err, parkingLot) {
+    if (err) {
+      return res.status(400).send(`failed to update parking lot: ${err}`);
+    }
+
+    // replace cached parking lot with the same id
+    addToCache(parkingLot.toObject())
+    res.send(200)
+  })
 
 })
 

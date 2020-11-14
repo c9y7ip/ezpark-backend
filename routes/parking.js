@@ -36,4 +36,26 @@ router.post('/create-parking', async (req, res) => {
   }
 })
 
+router.get('/all', async (req, res) => {
+  Parking.find({}, (err, parkingLots) =>
+    res.send(parkingLots.reduce((parkingMap, item) => {
+      parkingMap[item.id] = item
+      return parkingMap
+    }, {}))
+  )
+})
+
+
+router.get('/:parkingId', async (req, res) => {
+
+})
+
+router.delete('/:parkingId', async (req, res) => {
+
+})
+
+router.put('/:parkingId', async (req, res) => {
+
+})
+
 module.exports = router;

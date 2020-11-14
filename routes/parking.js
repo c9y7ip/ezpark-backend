@@ -3,6 +3,9 @@ const Parking = require('../models/parking');
 const Session = require('../models/session');
 const router = express.Router();
 const QRCode = require('qrcode');
+var mongoose = require('mongoose');
+var Types = mongoose.Types,
+  ObjectId = Types.ObjectId;
 // const io = require('socket.io').listen(app)
 
 // Cached Data
@@ -35,12 +38,16 @@ function createCache() {
   })
 }
 
-function deletefromCache(parkingLotId) {
+function deleteFromCache(parkingLotId) {
   delete cachedParkingLots[parkingLotId];
+  console.log("cached updated: ")
+  console.log(cachedParkingLots)
 }
 
 function addToCache(parkingLot) {
-  cachedParkingLots[parkingLot.id] = parkingLot;
+  cachedParkingLots[parkingLot._id] = parkingLot;
+  console.log("cached updated: ")
+  console.log(cachedParkingLots)
 }
 
 // update parking cache to include new session object
@@ -75,7 +82,7 @@ router.post('/create-parking', async (req, res) => {
     parking.save()
       .then(parking => {
         addToCache(parking.toObject())
-        res.send(200)
+        res.sendStatus(200)
       })
       .catch(err => res.status(400).send(`create parking failed ${err}`))
   })
@@ -97,27 +104,28 @@ router.get('/all', async (req, res) => {
 
 router.delete('/:parkingId', async (req, res) => {
   Parking.findByIdAndDelete(req.params.parkingId).exec()
-    .then(parking => this.deletefromCache(req.params.parkingId))
+    .then(parking => deleteFromCache(req.params.parkingId))
     .catch(err => res.status(400).send(`delete parking failed ${err}`))
 })
 
 router.put('/:parkingId', async (req, res) => {
-  const { name, number, rate, address, sessions } = req.body
+  const { name, number, rate, address, qrCodeUrl } = req.body
 
-  if (!name || !number || !rate || !address || !sessions) {
+  if (!name || !number || !rate || !address || !qrCodeUrl) {
     return res.status(400).send('Missing parameter')
   }
 
-  const parkingLot = { name, number, rate, address, sessions }
+  const parkingLot = { name, number, rate, address, qrCodeUrl }
 
-  Parking.findOneAndReplace({ _id: req.params.parkingId }, parkingLot, function (err, parkingLot) {
+  console.log(parkingLot)
+  Parking.findOneAndReplace({ "_id": ObjectId(req.params.parkingId) }, parkingLot, function (err, parkingLot) {
     if (err) {
       return res.status(400).send(`failed to update parking lot: ${err}`);
     }
 
     // replace cached parking lot with the same id
     addToCache(parkingLot.toObject())
-    res.send(200)
+    res.sendStatus(200)
   })
 
 })

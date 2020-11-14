@@ -29,10 +29,14 @@ router.post('/add', async (req, res) => {
 
 router.delete('/delete', async (req, res) => {
   const payload = jwtDecode(req.header('authorization'));
-  await Car.delete({license: req.body.license, createdBy: payload['user']['_id']}).then((success) => {
-    res.json(req.body)
+  await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']}).then((success) => {
+    if (success === null){
+      res.status(404).json(req.body)
+    } else{
+      res.json(success)
+    }
   }, (error) => {
-    res.status(409).json(req.body);
+    res.status(404).json(req.body);
   })
 })
 

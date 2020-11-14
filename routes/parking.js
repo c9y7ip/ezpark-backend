@@ -1,7 +1,9 @@
 const express = require('express');
 const Parking = require('../models/parking');
+const Session = require('../models/session');
 const router = express.Router();
 const QRCode = require('qrcode');
+const SessionStrategy = require('passport/lib/strategies/session');
 // const io = require('socket.io').listen(app)
 
 // Cached Data
@@ -14,8 +16,16 @@ function onInit() {
 }
 
 function createCache() {
-  Parking.find({}, (err, parkingLots) => {
-    // parkingLots.sessions = parkingLots.map()
+  Parking.find({}, async (err, parkingLots) => {
+
+    // Map session id to session object for each parking lot object.
+    await Promise.all(parkingLots.map(async parkingLot => {
+      parkingLot.sessions = await Promise.all(parkingLot.sessions.map(async sessionId => {
+        await Session.findById({ sessionId }).exec();
+      }))
+      return parkingLot
+    }))
+
     cachedParkingLots = parkingLots.reduce((parkingMap, item) => {
       // Parking lots get aggregated into a map with key: _id, value: parkingLot.
       parkingMap[item.id] = item
@@ -75,15 +85,6 @@ router.post('/create-parking', async (req, res) => {
 })
 
 router.get('/all', async (req, res) => {
-  // Parking.find({}, (err, parkingLots) => {
-  //   parkingLots.sessions = parkingLots.map()
-  //   res.send(parkingLots.reduce((parkingMap, item) => {
-  //     // Parking lots get aggregated into a map with key: _id, value: parkingLot.
-  //     parkingMap[item.id] = item
-  //     return parkingMap
-  //   }, {}))
-  // })
-
   res.send(cachedParkingLots);
 })
 

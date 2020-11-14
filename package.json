@@ -27,6 +27,7 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "qrcode": "^1.4.4",
+    "socket.io": "^3.0.1",
     "stripe": "^8.120.0"
   }
 }

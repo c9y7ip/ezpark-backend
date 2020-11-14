@@ -1,7 +1,43 @@
 const express = require('express');
 const Parking = require('../models/parking');
 const router = express.Router();
-const QRCode = require('qrcode')
+const QRCode = require('qrcode');
+// const io = require('socket.io').listen(app)
+
+// Cached Data
+var cachedParkingLots = {}
+
+onInit();
+
+function onInit() {
+  createCache();
+}
+
+function createCache() {
+  Parking.find({}, (err, parkingLots) => {
+    // parkingLots.sessions = parkingLots.map()
+    cachedParkingLots = parkingLots.reduce((parkingMap, item) => {
+      // Parking lots get aggregated into a map with key: _id, value: parkingLot.
+      parkingMap[item.id] = item
+      return parkingMap
+    }, {})
+    console.log(cachedParkingLots)
+    console.log("Parking Lot Data Cached")
+  })
+}
+
+function deletefromCache() {
+
+}
+
+function addToCache() {
+
+}
+
+// update parking cache to include new session object
+function updateCache() {
+
+}
 
 router.get('/', (req, res) => {
   res.send('parking Route is working')
@@ -19,17 +55,19 @@ router.post('/create-parking', async (req, res) => {
       name: name,
       number: number,
       rate: rate,
-      address: address
+      address: address,
+
     })
     QRCode.toDataURL(parking.id, { width: 300 }, function (err, url) {
       if (err) {
         return res.status(500).send("failed to create qrcode");
       }
       // If qrcode generated successfully, we save the document for the space.
-      // console.log(url);
       parking.qrCodeUrl = url;
+      parking.save()
+        .then(parking => res.send(200))
+        .catch(err => res.status(400).send(`create parking failed ${err}`))
     })
-    parking.save()
   } catch (err) {
     console.log(err)
     res.status(400).send(`create parking failed ${err}`)
@@ -37,18 +75,27 @@ router.post('/create-parking', async (req, res) => {
 })
 
 router.get('/all', async (req, res) => {
-  Parking.find({}, (err, parkingLots) =>
-    res.send(parkingLots.reduce((parkingMap, item) => {
-      parkingMap[item.id] = item
-      return parkingMap
-    }, {}))
-  )
+  // Parking.find({}, (err, parkingLots) => {
+  //   parkingLots.sessions = parkingLots.map()
+  //   res.send(parkingLots.reduce((parkingMap, item) => {
+  //     // Parking lots get aggregated into a map with key: _id, value: parkingLot.
+  //     parkingMap[item.id] = item
+  //     return parkingMap
+  //   }, {}))
+  // })
+
+  res.send(cachedParkingLots);
 })
 
+// router.put('/session', async (req, res) => {
 
-router.get('/:parkingId', async (req, res) => {
+//   // emits map with key: parking-id, value: session object
+//   io.sockets.emit("session-map", sessionMap)
+// })
 
-})
+// io.on("connection", socket => {
+//   console.log("New client connected: " + socket.id);
+// })
 
 router.delete('/:parkingId', async (req, res) => {
 

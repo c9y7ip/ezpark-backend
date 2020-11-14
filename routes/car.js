@@ -44,10 +44,14 @@ router.delete('/delete', async (req, res) => {
 router.put('/edit', async (req, res) => {
   const payload = jwtDecode(req.header('authorization'));
   await Car.update({license: req.body.license, createdBy: payload['user']['_id']}, req.body).then((success) => {
-    console.log(success)
-    res.json(req.body);
+    if (success.nModified === 0){
+      console.log("No documents modified")
+      res.status(404).json(req.body)
+    } else {
+      res.json(req.body);
+    }
   }, (error) => {
-    res.status(409).json(req.body);
+    res.status(404).json(req.body);
   })
 })
 

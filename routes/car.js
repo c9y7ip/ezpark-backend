@@ -28,7 +28,7 @@ router.post('/add', async (req, res) => {
 })
 
 
-router.delete('/delete', async (req, res) => {
+router.post('/delete', async (req, res) => {
     const payload = jwtDecode(req.header('authorization'));
     await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']}).then((success) => {
         if (success === null) {

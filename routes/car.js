@@ -10,31 +10,41 @@ router.get('/', (req, res) => {
 
 
 router.post('/add', async (req, res) => {
-    const payload = jwtDecode(req.header('authorization'));
-    const update = {$setOnInsert: Object.assign({createdBy: payload['user']['_id']}, req.body)}
-    await Car.findOneAndUpdate({createdBy: payload['user']['_id'], license: req.body.license}, update,
-        {upsert: true, new: true, runValidators: true, rawResult: true}).then(
-        (result) => {
-            if (result.lastErrorObject.updatedExisting) {
-                console.log("Car already exists")
-                res.status(409).json(req.body)
-            } else {
-                console.log("Successfully added a new car")
-                res.status(200).json(req.body)
-            }
-        }, (error) => {
-            res.status(400)
-        })
+    const {_id} = jwtDecode(req.header('authorization'))['user'];
+
+    await User.findOne({_id: _id}).then(async (user) => {
+        if(user !== null || user !== 'undefined'){
+            await Car.findOne({createdBy: _id, license: req.body.license}).then(async (car) => {
+                if (car === null){
+                    const newCar = new Car(Object.assign({createdBy: _id}, req.body))
+                    await newCar.save().then((car) => {
+                        console.log('New car saved')
+                        user.cars.push(car._id)
+                        user.save()
+                        res.json(req.body)
+                    })
+                } else {
+                    console.log("Car already exists")
+                    res.status(409).json(req.body)
+                }
+            })
+        }
+    })
 })
 
 
 router.post('/delete', async (req, res) => {
     const payload = jwtDecode(req.header('authorization'));
-    await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']}).then((success) => {
-        if (success === null) {
+    await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']}).then(async (car) => {
+        if (car === null) {
             res.status(404).json(req.body) // Could not find document
         } else {
-            res.json(success)
+            await User.findOne({_id: car.createdBy}).then((user) => {
+                user.cars.splice(user.cars.indexOf(car._id), 1)
+                user.save().then((r) => {
+                    res.json(car)
+                })
+            })
         }
     }, (error) => {
         res.status(404).json(req.body);
@@ -60,7 +70,6 @@ router.put('/edit', async (req, res) => {
 router.post('/find', async (req, res) => {
     const payload = jwtDecode(req.header('authorization'));
     await User.findById(payload['user']['_id']).then(async (success) => {
-        console.log(success)
         if (success.isAdmin === true) {
             await Car.findOne({license: req.body.license}).then((success) => {
                 console.log(success)

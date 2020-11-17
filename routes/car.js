@@ -16,7 +16,7 @@ router.post('/add', async (req, res) => {
         if (user !== null || user !== 'undefined') {
             const car = await Car.findOne({createdBy: _id, license: req.body.license})
             if (car === null) {
-                const newCar = await new Car(Object.assign({createdBy: _id}, req.body)).save();
+                const newCar = await new Car({createdBy: _id, ...req.body}).save();
                 console.log('New car saved')
                 user.cars.push(newCar._id)
                 user.save()

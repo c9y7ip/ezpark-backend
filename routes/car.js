@@ -10,45 +10,46 @@ router.get('/', (req, res) => {
 
 
 router.post('/add', async (req, res) => {
-    const {_id} = jwtDecode(req.header('authorization'))['user'];
-
-    await User.findOne({_id: _id}).then(async (user) => {
-        if(user !== null || user !== 'undefined'){
-            await Car.findOne({createdBy: _id, license: req.body.license}).then(async (car) => {
-                if (car === null){
-                    const newCar = new Car(Object.assign({createdBy: _id}, req.body))
-                    await newCar.save().then((car) => {
-                        console.log('New car saved')
-                        user.cars.push(car._id)
-                        user.save()
-                        res.json(req.body)
-                    })
-                } else {
-                    console.log("Car already exists")
-                    res.status(409).json(req.body)
-                }
-            })
+    try {
+        const {_id} = jwtDecode(req.header('authorization'))['user'];
+        const user = await User.findOne({_id: _id})
+        if (user !== null || user !== 'undefined') {
+            const car = await Car.findOne({createdBy: _id, license: req.body.license})
+            if (car === null) {
+                const newCar = await new Car(Object.assign({createdBy: _id}, req.body)).save();
+                console.log('New car saved')
+                user.cars.push(newCar._id)
+                user.save()
+                res.json(req.body)
+            } else {
+                console.log("Car already exists")
+                res.status(409).json(req.body)
+            }
         }
-    })
+    } catch (error) {
+        console.log(error)
+        res.status(400).send("A Server Error Has Occurred")
+    }
 })
 
 
 router.post('/delete', async (req, res) => {
-    const payload = jwtDecode(req.header('authorization'));
-    await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']}).then(async (car) => {
+    try {
+        const payload = jwtDecode(req.header('authorization'));
+        const car = await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']})
         if (car === null) {
             res.status(404).json(req.body) // Could not find document
         } else {
-            await User.findOne({_id: car.createdBy}).then((user) => {
-                user.cars.splice(user.cars.indexOf(car._id), 1)
-                user.save().then((r) => {
-                    res.json(car)
-                })
+            const user = await User.findOne({_id: car.createdBy})
+            user.cars.splice(user.cars.indexOf(car._id), 1)
+            user.save().then((r) => {
+                res.json(car)
             })
         }
-    }, (error) => {
-        res.status(404).json(req.body);
-    })
+    } catch (error) {
+        console.log(error)
+        res.status(400).send("A Server Error Has Occurred")
+    }
 })
 
 
@@ -63,27 +64,6 @@ router.put('/edit', async (req, res) => {
         }
     }, (error) => {
         res.status(404).json(req.body); // Server error
-    })
-})
-
-
-router.post('/find', async (req, res) => {
-    const payload = jwtDecode(req.header('authorization'));
-    await User.findById(payload['user']['_id']).then(async (success) => {
-        if (success.isAdmin === true) {
-            await Car.findOne({license: req.body.license}).then((success) => {
-                console.log(success)
-                if (success !== null) {
-                    res.status(200).json(success) // Car found with license
-                } else {
-                    res.status(204).send() // No car found with matching license
-                }
-            })
-        } else {
-            res.status(403).json(req.body) // User is not an admin
-        }
-    }, (error) => {
-        res.status(404).json(req.body) // Server error
     })
 })
 

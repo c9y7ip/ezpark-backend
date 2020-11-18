@@ -52,7 +52,7 @@ function addToCache(parkingLot) {
 
 // update parking cache to include new session object
 function updateSessionInCache() {
-
+  //TODO: complete when sessions endpoint is added if we want to view sessions from the admin side
 }
 
 router.get('/', (req, res) => {
@@ -92,16 +92,6 @@ router.get('/all', async (req, res) => {
   res.send(cachedParkingLots);
 })
 
-// router.put('/session', async (req, res) => {
-
-//   // emits map with key: parking-id, value: session object
-//   io.sockets.emit("session-map", sessionMap)
-// })
-
-// io.on("connection", socket => {
-//   console.log("New client connected: " + socket.id);
-// })
-
 router.delete('/:parkingId', async (req, res) => {
   Parking.findByIdAndDelete(req.params.parkingId).exec()
     .then(parking => deleteFromCache(req.params.parkingId))
@@ -109,16 +99,16 @@ router.delete('/:parkingId', async (req, res) => {
 })
 
 router.put('/:parkingId', async (req, res) => {
-  const { name, number, rate, address, qrCodeUrl } = req.body
+  const { name, number, rate, address } = req.body
 
-  if (!name || !number || !rate || !address || !qrCodeUrl) {
+  if (!name || !number || !rate || !address ) {
     return res.status(400).send('Missing parameter')
   }
 
-  const parkingLot = { name, number, rate, address, qrCodeUrl }
+  const parkingLot = { name, number, rate, address }
 
   console.log(parkingLot)
-  Parking.findOneAndReplace({ "_id": ObjectId(req.params.parkingId) }, parkingLot, function (err, parkingLot) {
+  Parking.findOneAndUpdate({ "_id": ObjectId(req.params.parkingId) }, parkingLot, function (err, parkingLot) {
     if (err) {
       return res.status(400).send(`failed to update parking lot: ${err}`);
     }

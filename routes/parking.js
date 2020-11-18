@@ -1,6 +1,7 @@
 const express = require('express');
 const Parking = require('../models/parking');
 const Session = require('../models/session');
+const jwtDecode = require('jwt-decode');
 const router = express.Router();
 const QRCode = require('qrcode');
 var mongoose = require('mongoose');
@@ -66,12 +67,14 @@ router.post('/create-parking', async (req, res) => {
     return res.status(400).send('Missing parameter')
   }
 
+  const {_id} = jwtDecode(req.header('authorization'))['user'];
+
   const parking = new Parking({
     name: name,
     number: number,
     rate: rate,
     address: address,
-
+    createdBy: _id
   })
   QRCode.toDataURL(parking.id, { width: 300 }, function (err, url) {
     if (err) {

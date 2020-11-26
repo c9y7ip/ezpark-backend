@@ -67,4 +67,17 @@ router.put('/edit', async (req, res) => {
     })
 })
 
+
+router.get('/get', async (req, res) => {
+    const user = jwtDecode(req.header('authorization'))['user']['_id'];
+    await Car.find({createdBy: user}).then((success) => {
+        if (success){
+            res.json(success);
+        }
+    }, (error) => {
+        console.log(error)
+        res.status(404).send()
+    })
+})
+
 module.exports = router;

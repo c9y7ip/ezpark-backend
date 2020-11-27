@@ -7,6 +7,10 @@ const passport = require('passport');
 const flash = require('express-flash');
 const User = require('./models/user');
 const cors = require('cors');
+const morgan = require("morgan");
+
+// load .env
+require("dotenv").config();
 
 // connect mongoDB
 mongoose.connect(
@@ -33,8 +37,7 @@ app.use(cookieParser());
 app.use(flash());
 app.use(passport.initialize());
 app.use(cors());
-
-
+app.use(morgan('dev'));
 
 // import routers
 const auth = require('./routes/auth');

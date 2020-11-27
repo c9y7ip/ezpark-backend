@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const jwtDecode = require('jwt-decode');
 
 const Stripe = require('stripe');
 const Parking = require('../models/parking');
@@ -46,10 +47,11 @@ router.post('/charge', async (req, res) => {
 })
 
 router.post('/create-customer', async (req, res) => {
-  const { token, userId } = req.body
+  const { token } = req.body
+  const userId = jwtDecode(req.header('authorization'))['user']['_id'];
 
-  if (!token || !userId) {
-    return res.status(400).send('Payment token and userId required');
+  if (!token) {
+    return res.status(400).send('Payment token required');
   }
   try {
     const user = await User.findById(userId)

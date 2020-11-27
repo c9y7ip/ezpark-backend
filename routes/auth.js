@@ -6,10 +6,6 @@ const User = require('../models/user')
 const jwt = require('jsonwebtoken');
 const jwtDecode = require('jwt-decode');
 
-router.get('/', (req, res) => {
-  res.send('Auth Route is working')
-});
-
 
 router.get('/users', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {

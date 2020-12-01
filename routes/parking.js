@@ -34,7 +34,7 @@ function createCache() {
       parkingMap[item.id] = item
       return parkingMap
     }, {})
-    console.log(cachedParkingLots)
+    // console.log(cachedParkingLots)
     console.log("Parking Lot Data Cached")
   })
 }
@@ -122,5 +122,26 @@ router.put('/:parkingId', async (req, res) => {
   })
 
 })
+
+router.get('/allLots', async (req, res) => {
+  try {
+    const parkinglots = await Parking.find()
+    res.json(parkinglots)
+  } catch (e) {
+    res.status(500).json({ 'message': e.message });
+  }
+})
+
+router.post('/getOneLot', async (req, res) => {
+  try {
+    const lot = await Parking.find({ number: req.body.number })
+    console.log(lot)
+    res.json(lot)
+  } catch (e) {
+    res.status(500).json({ 'message': e.message });
+  }
+})
+
+
 
 module.exports = router;

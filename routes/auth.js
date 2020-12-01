@@ -4,10 +4,7 @@ const router = express.Router();
 const passport = require('passport')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken');
-
-router.get('/', (req, res) => {
-  res.send('Auth Route is working')
-});
+const jwtDecode = require('jwt-decode');
 
 
 router.get('/users', async (req, res) => {
@@ -27,9 +24,25 @@ router.post('/getOneUser', async (req, res) => {
     // console.log(user)
     res.json(user)
   } catch (e) {
-    res.status(500).json({ 'message': e.message });
+    res.status(400).json({ 'message': e.message });
   }
 })
+
+
+router.get('/user', passport.authenticate('jwt', { session: false }), async (req, res) => {
+    try {
+        const token_payload = jwtDecode(req.header('authorization'))['user']['_id'];
+        const user = await User.findOne({ _id: token_payload });
+        if(user === null){
+            res.status(400).json({'message': 'User not found'});
+        } else {
+            res.json(user);
+        }
+    } catch (e) {
+        res.status(400).json({'message': e.message});
+    }
+})
+
 
 router.post('/register', async (req, res) => {
   try {

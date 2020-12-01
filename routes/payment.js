@@ -26,7 +26,9 @@ router.get('/price', async (req, res) => {
 })
 
 router.post('/charge', async (req, res) => {
-  const { totalCost, userId } = req.body
+  const { totalCost } = req.body
+
+  const userId = jwtDecode(req.header('authorization'))['user']['_id'];
 
   try {
     const user = await User.findById(userId)

@@ -44,6 +44,7 @@ const auth = require('./routes/auth');
 const car = require('./routes/car');
 const parking = require('./routes/parking');
 const payment = require('./routes/payment');
+const session = require('./routes/session');
 
 
 // apply router middleware
@@ -51,6 +52,7 @@ app.use('/auth', auth);
 app.use('/car', passport.authenticate('jwt', { session: false }), car);
 app.use('/parking', passport.authenticate('jwt', { session: false }), parking);
 app.use('/payment', passport.authenticate('jwt', { session: false }), payment);
+app.use('/session', passport.authenticate('jwt', { session: false }), session);
 
 
 /**

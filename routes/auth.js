@@ -10,7 +10,19 @@ const jwtDecode = require('jwt-decode');
 router.get('/users', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const users = await User.find()
+    // console.log(users)
     res.json(users)
+
+  } catch (e) {
+    res.status(500).json({ 'message': e.message });
+  }
+})
+
+router.post('/getOneUser', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const user = await User.find({ email: req.body.email })
+    // console.log(user)
+    res.json(user)
   } catch (e) {
     res.status(400).json({ 'message': e.message });
   }
@@ -93,6 +105,5 @@ router.post('/logout', ((req, res) => {
   res.cookie('jwt', { expires: Date.now() });
   res.redirect('/login');
 }))
-
 
 module.exports = router;

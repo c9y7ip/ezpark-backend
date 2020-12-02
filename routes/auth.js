@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const jwtDecode = require('jwt-decode');
 
 
-router.get('/users', async (req, res) => {
+router.get('/users', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const users = await User.find()
     // console.log(users)
@@ -18,7 +18,7 @@ router.get('/users', async (req, res) => {
   }
 })
 
-router.post('/getOneUser', async (req, res) => {
+router.post('/getOneUser', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const user = await User.find({ email: req.body.email })
     // console.log(user)

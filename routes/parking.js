@@ -130,9 +130,10 @@ router.put('/:parkingId', async (req, res) => {
 
 })
 
-router.get('/allLots', async (req, res) => {
-  try {
+router.post('/allLots', async (req, res) => {
+  try {    
     const parkinglots = await Parking.find()
+    console.log(parkinglots)
     res.json(parkinglots)
   } catch (e) {
     res.status(500).json({ 'message': e.message });

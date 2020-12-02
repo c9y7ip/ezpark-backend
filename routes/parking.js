@@ -95,6 +95,13 @@ router.get('/all', async (req, res) => {
   res.send(cachedParkingLots);
 })
 
+router.get('/:parkingId', async (req, res) => {
+  Parking.findById(req.params.parkingId)
+    .select('rate name number address')
+    .then(parking => res.send(parking))
+    .catch(err => res.status(400).send(`parking lot not available ${err}`))
+})
+
 router.delete('/:parkingId', async (req, res) => {
   Parking.findByIdAndDelete(req.params.parkingId).exec()
     .then(parking => deleteFromCache(req.params.parkingId))

@@ -24,7 +24,7 @@ function createCache() {
     // Map session id to session object for each parking lot object.
     await Promise.all(parkingLots.map(async parkingLot => {
       parkingLot.sessions = await Promise.all(parkingLot.sessions.map(async sessionId => {
-        await Session.findById({ sessionId }).exec();
+        await Session.findById(sessionId).exec();
       }))
       return parkingLot
     }))
@@ -42,13 +42,14 @@ function createCache() {
 function deleteFromCache(parkingLotId) {
   delete cachedParkingLots[parkingLotId];
   console.log("cached updated: ")
-  console.log(cachedParkingLots)
 }
 
 function addToCache(parkingLot) {
+  console.log(`currently cached is ${cachedParkingLots._id}`)
+  console.log(parkingLot)
   cachedParkingLots[parkingLot._id] = parkingLot;
   console.log("cached updated: ")
-  console.log(cachedParkingLots)
+  console.log(cachedParkingLots[parkingLot._id])
 }
 
 // update parking cache to include new session object
@@ -67,7 +68,7 @@ router.post('/create-parking', async (req, res) => {
     return res.status(400).send('Missing parameter')
   }
 
-  const {_id} = jwtDecode(req.header('authorization'))['user'];
+  const { _id } = jwtDecode(req.header('authorization'))['user'];
 
   const parking = new Parking({
     name: name,
@@ -111,45 +112,28 @@ router.delete('/:parkingId', async (req, res) => {
 router.put('/:parkingId', async (req, res) => {
   const { name, number, rate, address } = req.body
 
-  if (!name || !number || !rate || !address ) {
+  if (!name || !number || !rate || !address) {
     return res.status(400).send('Missing parameter')
   }
 
   const parkingLot = { name, number, rate, address }
 
+  console.log(`updating with ${name} ${number} ${rate}`)
+
   console.log(parkingLot)
-  Parking.findOneAndUpdate({ "_id": ObjectId(req.params.parkingId) }, parkingLot, function (err, parkingLot) {
+
+  // NOTE: if you dont pass new:true, it will return the unaltered document in the callback function
+  Parking.findOneAndUpdate({ "_id": ObjectId(req.params.parkingId) }, parkingLot, { new: true }, function (err, savedParkingLot) {
     if (err) {
       return res.status(400).send(`failed to update parking lot: ${err}`);
     }
 
     // replace cached parking lot with the same id
-    addToCache(parkingLot.toObject())
+    deleteFromCache(req.params.parkingId)
+    addToCache(savedParkingLot.toObject())
     res.sendStatus(200)
   })
 
 })
-
-router.post('/allLots', async (req, res) => {
-  try {    
-    const parkinglots = await Parking.find()
-    console.log(parkinglots)
-    res.json(parkinglots)
-  } catch (e) {
-    res.status(500).json({ 'message': e.message });
-  }
-})
-
-router.post('/getOneLot', async (req, res) => {
-  try {
-    const lot = await Parking.find({ number: req.body.number })
-    console.log(lot)
-    res.json(lot)
-  } catch (e) {
-    res.status(500).json({ 'message': e.message });
-  }
-})
-
-
 
 module.exports = router;

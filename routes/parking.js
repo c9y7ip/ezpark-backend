@@ -86,7 +86,7 @@ router.post('/create-parking', async (req, res) => {
     parking.save()
       .then(parking => {
         addToCache(parking.toObject())
-        res.sendStatus(200)
+        res.send(parking.toObject())
       })
       .catch(err => res.status(400).send(`create parking failed ${err}`))
   })

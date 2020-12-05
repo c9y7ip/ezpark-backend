@@ -11,12 +11,12 @@ router.get('/', (req, res) => {
 
 router.post('/add', async (req, res) => {
     try {
-        const {_id} = jwtDecode(req.header('authorization'))['user'];
-        const user = await User.findOne({_id: _id})
+        const { _id } = jwtDecode(req.header('authorization'))['user'];
+        const user = await User.findOne({ _id: _id })
         if (user !== null || user !== 'undefined') {
-            const car = await Car.findOne({createdBy: _id, license: req.body.license})
+            const car = await Car.findOne({ createdBy: _id, license: req.body.license })
             if (car === null) {
-                const newCar = await new Car({createdBy: _id, ...req.body}).save();
+                const newCar = await new Car({ createdBy: _id, ...req.body }).save();
                 console.log('New car saved')
                 user.cars.push(newCar._id)
                 user.save()
@@ -36,11 +36,11 @@ router.post('/add', async (req, res) => {
 router.post('/delete', async (req, res) => {
     try {
         const payload = jwtDecode(req.header('authorization'));
-        const car = await Car.findOneAndDelete({license: req.body.license, createdBy: payload['user']['_id']})
+        const car = await Car.findOneAndDelete({ license: req.body.license, createdBy: payload['user']['_id'] })
         if (car === null) {
             res.status(404).json(req.body) // Could not find document
         } else {
-            const user = await User.findOne({_id: car.createdBy})
+            const user = await User.findOne({ _id: car.createdBy })
             user.cars.splice(user.cars.indexOf(car._id), 1)
             user.save().then((r) => {
                 res.json(car)
@@ -55,7 +55,7 @@ router.post('/delete', async (req, res) => {
 
 router.put('/edit', async (req, res) => {
     const payload = jwtDecode(req.header('authorization'));
-    await Car.update({license: req.body.license, createdBy: payload['user']['_id']}, req.body).then((success) => {
+    await Car.update({ license: req.body.license, createdBy: payload['user']['_id'] }, req.body).then((success) => {
         if (success.nModified === 0) {
             console.log("No documents modified")
             res.status(404).json(req.body) // No changes
@@ -70,9 +70,21 @@ router.put('/edit', async (req, res) => {
 
 router.get('/get', async (req, res) => {
     const user = jwtDecode(req.header('authorization'))['user']['_id'];
-    await Car.find({createdBy: user}).then((success) => {
-        if (success){
+    await Car.find({ createdBy: user }).then((success) => {
+        if (success) {
             res.json(success);
+        }
+    }, (error) => {
+        console.log(error)
+        res.status(404).send()
+    })
+})
+
+router.get('/all-licenses', async (req, res) => {
+    await Car.find({}).then((cars) => {
+        if (cars) {
+            const licenses = cars.map(car => car.license)
+            res.send(licenses);
         }
     }, (error) => {
         console.log(error)

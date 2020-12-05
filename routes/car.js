@@ -80,16 +80,4 @@ router.get('/get', async (req, res) => {
     })
 })
 
-router.get('/all-licenses', async (req, res) => {
-    await Car.find({}).then((cars) => {
-        if (cars) {
-            const licenses = cars.map(car => car.license)
-            res.send(licenses);
-        }
-    }, (error) => {
-        console.log(error)
-        res.status(404).send()
-    })
-})
-
 module.exports = router;
